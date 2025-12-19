@@ -1,67 +1,89 @@
-# Car Dealer Backend
+# Car Dealer Marketplace
 
-Backend API untuk aplikasi marketplace mobil. Proyek ini dibangun menggunakan framework Laravel dan menyediakan fitur manajemen inventaris mobil, transaksi penjualan, serta integrasi data kendaraan eksternal.
+Aplikasi marketplace mobil yang terdiri dari Backend API berbasis Laravel dan Frontend menggunakan Next.js. Proyek ini menyediakan fitur manajemen inventaris mobil, transaksi penjualan, serta integrasi data kendaraan eksternal.
 
 ## Fitur Utama
 
-* **Otentikasi Pengguna**: Registrasi, Login, Logout, dan Profil User menggunakan Laravel Sanctum.
+* **Otentikasi Pengguna**: Registrasi, Login, Logout, dan Profil User (Laravel Sanctum & NextAuth/Axios).
 * **Manajemen Mobil (CRUD)**: Menambah, melihat, memperbarui, dan menghapus data mobil.
 * **Sistem Transaksi**: Pencatatan transaksi penjualan mobil.
 * **Integrasi NHTSA**: Mengambil data merek (brands) dan model kendaraan secara real-time dari API NHTSA.
-* **Keamanan**: Proteksi rute menggunakan middleware otentikasi (Sanctum).
+* **Keamanan**: Proteksi rute API menggunakan middleware otentikasi.
 
 ## Teknologi yang Digunakan
 
+### Backend
 * **Bahasa Pemrograman**: PHP ^8.2
 * **Framework**: Laravel ^12.0
 * **Otentikasi**: Laravel Sanctum ^4.0
 * **Real-time**: Laravel Reverb ^1.0
-* **Database**: MySQL / SQLite (Sesuai konfigurasi `.env`)
+* **Database**: MySQL / SQLite (Sesuai konfigurasi)
+
+### Frontend
+* **Framework**: Next.js (React)
+* **Runtime**: Node.js
+* **Styling**: Tailwind CSS (Opsional, umum digunakan dengan Next.js)
 
 ## Prasyarat Instalasi
 
 Sebelum memulai, pastikan sistem Anda memiliki:
 
-* PHP >= 8.2
-* Composer
-* Node.js & NPM (untuk aset frontend jika diperlukan)
-* Database Server (MySQL/MariaDB/PostgreSQL)
+* **PHP** >= 8.2 (untuk Backend Laravel)
+* **Composer** (Manajer dependensi PHP)
+* **Node.js** >= 18.x & **NPM/Yarn** (Wajib untuk menjalankan Next.js)
+* **Database Server** (MySQL/MariaDB/PostgreSQL)
 
 ## Instalasi
 
-1.  **Clone Repositori**
+### 1. Setup Backend (Laravel)
+
+1.  **Clone Repositori & Masuk ke Folder Backend**
     ```bash
-    git clone [https://github.com/username/car-dealer-backend.git](https://github.com/username/car-dealer-backend.git)
+    git clone [https://github.com/username/car-marketplace.git](https://github.com/username/car-marketplace.git)
     cd car-dealer-backend
     ```
 
-2.  **Instal Dependensi PHP**
+2.  **Instal Dependensi & Konfigurasi**
     ```bash
     composer install
-    ```
-
-3.  **Konfigurasi Environment**
-    Salin file contoh konfigurasi dan sesuaikan kredensial database Anda.
-    ```bash
     cp .env.example .env
-    ```
-    Buka file `.env` dan atur `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD`.
-
-4.  **Generate Application Key**
-    ```bash
+    # Atur DB_DATABASE, DB_USERNAME, dll di file .env
     php artisan key:generate
-    ```
-
-5.  **Jalankan Migrasi Database**
-    ```bash
     php artisan migrate
     ```
 
-6.  **Jalankan Server Lokal**
+3.  **Jalankan Server Backend**
     ```bash
     php artisan serve
     ```
-    Aplikasi akan berjalan di `http://localhost:8000`.
+    Backend akan berjalan di `http://localhost:8000`.
+
+### 2. Setup Frontend (Next.js)
+
+1.  **Masuk ke Folder Frontend**
+    (Asumsi folder frontend berada sejajar dengan backend)
+    ```bash
+    cd ../car-dealer-frontend
+    ```
+
+2.  **Instal Dependensi**
+    ```bash
+    npm install
+    # atau
+    yarn install
+    ```
+
+3.  **Konfigurasi Environment Frontend**
+    Buat file `.env.local` dan tambahkan URL backend:
+    ```env
+    NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    ```
+
+4.  **Jalankan Server Frontend**
+    ```bash
+    npm run dev
+    ```
+    Aplikasi frontend dapat diakses di `http://localhost:3000`.
 
 ## Contoh Penggunaan (API Endpoints)
 
