@@ -50,9 +50,6 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email atau Password salah'], 401);
         }
 
-        // Delete old tokens if you want single-session (optional)
-        // $user->tokens()->delete();
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import api from './lib/api'; 
 import Link from 'next/link';
 
-// Define the shape of a Car object
 interface Mobil {
   id: string;
   merk: string;
@@ -62,9 +61,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 font-sans text-gray-900">
       
-      {/* 1. HERO SECTION */}
+      {/* HERO SECTION */}
       <div className="relative bg-slate-900 pt-20 pb-32 overflow-hidden">
-        {/* Decorative Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 opacity-90"></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
         
@@ -81,7 +79,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 2. FLOATING SEARCH BAR */}
+      {/* FLOATING SEARCH BAR */}
       <div className="relative -mt-8 px-6 mb-12">
         <div className="max-w-3xl mx-auto">
           <form onSubmit={handleSearch} className="relative flex items-center bg-white rounded-full p-2 shadow-2xl border border-gray-100 ring-1 ring-black/5">
@@ -122,7 +120,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 3. SUB-HEADER & STATS */}
+      {/* SUB-HEADER & STATS */}
       <div className="max-w-7xl mx-auto px-6 mb-8 flex flex-col md:flex-row justify-between items-end border-b border-gray-200 pb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Koleksi Terbaru</h2>
@@ -153,7 +151,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 4. CAR GRID */}
+      {/* CAR GRID */}
       <div className="px-6 pb-20 max-w-7xl mx-auto">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

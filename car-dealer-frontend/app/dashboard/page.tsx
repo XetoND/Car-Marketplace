@@ -148,7 +148,7 @@ export default function Dashboard() {
             {myMobils.map((mobil) => (
               <div key={mobil.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group relative hover:shadow-md transition">
                 
-                {/* --- EDIT BUTTON (New) --- */}
+                {/* EDIT BUTTON */}
                 <Link
                   href={`/edit/${mobil.id}`}
                   className="absolute top-2 right-12 bg-white/90 p-2 rounded-full text-blue-500 hover:bg-blue-100 shadow-sm z-10 transition opacity-0 group-hover:opacity-100"
@@ -157,7 +157,7 @@ export default function Dashboard() {
                   ✏️
                 </Link>
 
-                {/* --- DELETE BUTTON --- */}
+                {/* DELETE BUTTON */}
                 <button
                   onClick={(e) => {
                     e.preventDefault(); 
