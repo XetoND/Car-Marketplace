@@ -10,22 +10,33 @@ class MobilController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Mobil::with('owner')->where('status', 'tersedia');
+    $query = Mobil::with('owner')->whereIn('status', ['tersedia', 'booked']);
 
-        // Search by Brand or Model
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('merk', 'like', "%{$search}%")
-                  ->orWhere('model', 'like', "%{$search}%");
-            });
-        }
-
-        // Sort by Newest first
-        $mobils = $query->latest()->get();
-
-        return response()->json($mobils);
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('merk', 'like', "%{$search}%")
+              ->orWhere('model', 'like', "%{$search}%")
+              ->orWhereRaw("CONCAT(merk, ' ', model) LIKE ?", ["%{$search}%"]);
+        });
     }
+
+    if ($request->filled('merk')) {
+        $query->where('merk', 'like', "%{$request->merk}%");
+    }
+
+    if ($request->filled('tahun')) {
+        $query->where('tahun', $request->tahun);
+    }
+
+    if ($request->filled('lokasi')) {
+        $query->where('lokasi', 'like', "%{$request->lokasi}%");
+    }
+
+    $mobils = $query->latest()->get();
+
+    return response()->json($mobils);
+    }      
 
     public function show($id)
     {
@@ -59,7 +70,7 @@ class MobilController extends Controller
 
         // Create Record
         $mobil = Mobil::create([
-            'owner_id' => $request->user()->id, // Taken from Auth Token
+            'owner_id' => $request->user()->id,
             'merk' => $request->merk,
             'model' => $request->model,
             'tahun' => $request->tahun,
