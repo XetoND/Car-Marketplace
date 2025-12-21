@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class TransaksiController extends Controller
 {
-    // POST /api/transaksi
     public function store(Request $request)
     {
         $request->validate([
@@ -18,50 +17,47 @@ class TransaksiController extends Controller
 
         $user = $request->user();
         $mobil = Mobil::find($request->mobil_id);
-
-        // 1. Validation: Is the car actually available?
+        
         if ($mobil->status !== 'tersedia') {
             return response()->json(['message' => 'Maaf, mobil ini sudah terjual.'], 400);
         }
 
-        // 2. Validation: You cannot buy your own car
         if ($mobil->owner_id === $user->id) {
             return response()->json(['message' => 'Anda tidak bisa membeli mobil sendiri.'], 400);
         }
 
-        // 3. Execute Transaction
+        $grandTotal = $mobil->harga_jual; 
+        $fee = $grandTotal * 0.05; 
+
         try {
             DB::beginTransaction();
 
-            // Create Transaction Record
             $transaksi = TransaksiJual::create([
                 'mobil_id' => $mobil->id,
                 'penjual_id' => $mobil->owner_id,
                 'pembeli_id' => $user->id,
-                'total' => $mobil->harga_jual,
-                'status' => 'selesai', // Auto-complete for now
+                'total' => $grandTotal,
+                'admin_fee' => $fee,
+                'status' => 'menunggu_konfirmasi', 
             ]);
 
-            // Mark Car as Sold
-            $mobil->update(['status' => 'terjual']);
+            $mobil->update(['status' => 'booked']);
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Pembelian berhasil!',
+                'message' => 'Pesanan diterima! Menunggu konfirmasi Admin.',
                 'data' => $transaksi
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Terjadi kesalahan sistem.'], 500);
+            return response()->json(['message' => 'Gagal memproses transaksi.'], 500);
         }
     }
-    
-    // GET /api/transaksi (History)
+
     public function index(Request $request)
     {
-        // Get all transactions where user is Buyer OR Seller
         $userId = $request->user()->id;
         
         $transactions = TransaksiJual::with(['mobil', 'penjual:id,name', 'pembeli:id,name'])
@@ -71,5 +67,72 @@ class TransaksiController extends Controller
             ->get();
             
         return response()->json($transactions);
+    }
+
+    public function adminIndex(Request $request)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $transactions = TransaksiJual::with(['mobil', 'penjual', 'pembeli'])
+            ->where('status', 'menunggu_konfirmasi')
+            ->latest()
+            ->get();
+
+        return response()->json($transactions);
+    }
+
+    public function confirm(Request $request, $id)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $transaksi = TransaksiJual::find($id);
+
+        if (!$transaksi || $transaksi->status !== 'menunggu_konfirmasi') {
+            return response()->json(['message' => 'Transaksi tidak valid'], 404);
+        }
+
+        try {
+            DB::beginTransaction();
+            $transaksi->update(['status' => 'selesai']);
+            
+            $transaksi->mobil()->update(['status' => 'terjual']);
+            
+            DB::commit();
+            return response()->json(['message' => 'Transaksi disetujui.']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error'], 500);
+        }
+    }
+
+    public function adminStats(Request $request)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $totalRevenue = TransaksiJual::where('status', 'selesai')->sum('admin_fee');
+        
+        return response()->json(['total_revenue' => $totalRevenue]);
+    }
+
+    public function userStats(Request $request)
+    {
+        $userId = $request->user()->id;
+        $transactions = TransaksiJual::where('penjual_id', $userId)
+                                     ->where('status', 'selesai')
+                                     ->get();
+        
+        $totalEarnings = 0;
+        foreach($transactions as $trx) {
+            $totalEarnings += ($trx->total - $trx->admin_fee);
+        }
+
+        return response()->json(['total_earnings' => $totalEarnings]);
     }
 }

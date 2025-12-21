@@ -16,7 +16,8 @@ class TransaksiJual extends Model
         'penjual_id', 
         'pembeli_id', 
         'total', 
-        'status'
+        'status',
+        'admin_fee'
     ];
 
     public function mobil()
