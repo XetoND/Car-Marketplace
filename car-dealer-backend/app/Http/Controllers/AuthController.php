@@ -18,7 +18,6 @@ class AuthController extends Controller
             'password' => 'required|string|min:6',
             'phone' => 'nullable|string|max:20',
         ]);
-        // User::create will trigger HasUuids to generate the ID
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -35,8 +34,6 @@ class AuthController extends Controller
             'token' => $token,
         ], 201);
     }
-
-    // POST /api/login
     public function login(Request $request)
     {
         $request->validate([
@@ -59,14 +56,12 @@ class AuthController extends Controller
         ]);
     }
 
-    // POST /api/logout
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-    // GET /api/user (Profile)
     public function me(Request $request)
     {
         return response()->json($request->user());

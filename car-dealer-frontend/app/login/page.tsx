@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import api from '../lib/api'; // Adjust path if using src/app
+import api from '../lib/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -17,13 +17,15 @@ export default function LoginPage() {
 
     try {
       const response = await api.post('/login', { email, password });
-      
-      // 1. Save the token to LocalStorage
+
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
-      // 2. Redirect to Dashboard (or Homepage)
-      router.push('/dashboard'); 
+      if (response.data.user.role === 'admin') {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
     }

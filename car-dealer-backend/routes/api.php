@@ -17,6 +17,8 @@ Route::get('/mobils/{id}', [MobilController::class, 'show']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
+    Route::get('/admin/transaksi', [TransaksiController::class, 'adminIndex']);
+    Route::post('/admin/transaksi/{id}/confirm', [TransaksiController::class, 'confirm']);
 
     Route::post('/mobils', [MobilController::class, 'store']);
     Route::delete('/mobils/{id}', [MobilController::class, 'destroy']);
@@ -27,4 +29,6 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/brands', [NhtsaController::class, 'getBrands']);
     Route::get('/models/{brand}', [NhtsaController::class, 'getModels']);
+    Route::get('/admin/stats', [TransaksiController::class, 'adminStats']);
+    Route::get('/user/stats', [TransaksiController::class, 'userStats']);
 });
