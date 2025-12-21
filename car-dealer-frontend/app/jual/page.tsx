@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '../lib/api'; // Adjust path if using src/app
+import api from '../lib/api';
 
 export default function JualMobil() {
   const router = useRouter();
@@ -85,7 +85,7 @@ export default function JualMobil() {
 
     try {
       await api.post('/mobils', data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       });
       router.push('/'); 
     } catch (err: any) {

@@ -62,7 +62,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 font-sans text-gray-900">
       
       {/* HERO SECTION */}
-      <div className="relative bg-slate-900 pt-20 pb-32 overflow-hidden">
+      <div className="relative bg-slate-900 pt-20 pb-32 overflow-hidden"> 
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 opacity-90"></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
         

@@ -89,6 +89,11 @@ class MobilController extends Controller
         if ($mobil->owner_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+        
+        if ($mobil->foto_url) {
+            $oldPath = str_replace(asset('storage/'), '', $mobil->foto_url);
+            Storage::disk('public')->delete($oldPath);
+        }
 
         $mobil->delete();
 
@@ -106,13 +111,24 @@ class MobilController extends Controller
         if ($mobil->owner_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
+        
         $validatedData = $request->validate([
             'harga_jual' => 'numeric',
             'lokasi'     => 'string',
             'deskripsi'  => 'string',
-            'status'     => 'in:tersedia,terjual'
+            'status'     => 'in:tersedia,terjual',
+            'foto'       => 'nullable|image|max:5120', 
         ]);
+
+        if ($request->hasFile('foto')) {
+            if ($mobil->foto_url) {
+                $oldPath = str_replace(asset('storage/'), '', $mobil->foto_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('foto')->store('mobils', 'public');
+            $validatedData['foto_url'] = asset('storage/' . $path);
+        }
+        unset($validatedData['foto']); 
 
         $mobil->update($validatedData);
 
