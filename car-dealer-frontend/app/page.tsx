@@ -22,15 +22,26 @@ export default function Home() {
   const [mobils, setMobils] = useState<Mobil[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
-  // Search State
+  const [dashboardLink, setDashboardLink] = useState('/dashboard');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    merk: '',
+    tahun: '',
+    lokasi: ''
+  });
 
-  const fetchMobils = async (term = '') => {
+  const fetchMobils = async () => {
     setLoading(true);
     try {
-      const endpoint = term ? `/mobils?search=${term}` : '/mobils';
+      const params = new URLSearchParams();
+      
+      if (searchTerm) params.append('search', searchTerm);
+      if (filters.merk) params.append('merk', filters.merk);
+      if (filters.tahun) params.append('tahun', filters.tahun);
+      if (filters.lokasi) params.append('lokasi', filters.lokasi);
+
+      const endpoint = `/mobils?${params.toString()}`;
       const response = await api.get(endpoint);
       setMobils(response.data);
     } catch (error) {
@@ -42,27 +53,43 @@ export default function Home() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
     setIsLoggedIn(!!token);
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.role === 'admin') {
+        setDashboardLink('/admin');
+      } else {
+        setDashboardLink('/dashboard');
+      }
+    }
     fetchMobils();
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSearching(!!searchTerm);
-    fetchMobils(searchTerm);
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
+  // Handle Submit Search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchMobils();
+  };
+
+  // Handle Reset
   const handleReset = () => {
     setSearchTerm('');
-    setIsSearching(false);
-    fetchMobils('');
+    setFilters({ merk: '', tahun: '', lokasi: '' });
+    setTimeout(() => {
+        window.location.reload(); 
+    }, 100);
   };
 
   return (
     <main className="min-h-screen bg-gray-50 font-sans text-gray-900">
       
       {/* HERO SECTION */}
-      <div className="relative bg-slate-900 pt-20 pb-32 overflow-hidden"> 
+      <div className="relative bg-slate-900 pt-20 pb-40 overflow-hidden"> 
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 opacity-90"></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
         
@@ -73,49 +100,104 @@ export default function Home() {
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">
             Temukan Mobil <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Impian Anda</span>
           </h1>
-          <p className="text-slate-300 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            Jual beli mobil bebas ribet. Ribuan pilihan, harga transparan, dan transaksi aman di satu tempat.
+          <p className="text-slate-300 text-lg md:text-xl mb-4 max-w-2xl mx-auto leading-relaxed">
+            Jual beli mobil bebas ribet. Ribuan pilihan, harga transparan.
           </p>
         </div>
       </div>
 
-      {/* FLOATING SEARCH BAR */}
-      <div className="relative -mt-8 px-6 mb-12">
-        <div className="max-w-3xl mx-auto">
-          <form onSubmit={handleSearch} className="relative flex items-center bg-white rounded-full p-2 shadow-2xl border border-gray-100 ring-1 ring-black/5">
-            {/* Search Icon */}
-            <div className="pl-6 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            
-            <input
-              type="text"
-              placeholder="Cari merk, model, atau tahun..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-4 text-gray-700 bg-transparent focus:outline-none text-lg placeholder-gray-400"
-            />
-
-            {isSearching && (
+      {/* SEARCH & FILTER SECTION */}
+      <div className="relative -mt-20 px-6 mb-12 z-20">
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6 border border-gray-100">
+          
+          <form onSubmit={handleSearch}>
+            {/* Search Utama */}
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input
+                    type="text"
+                    placeholder="Cari merk atau model mobil..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
               <button
                 type="button"
-                onClick={handleReset}
-                className="mr-2 p-2 text-gray-400 hover:text-red-500 transition rounded-full hover:bg-gray-100"
+                onClick={() => setShowFilters(!showFilters)}
+                className="inline-flex justify-center items-center px-4 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
+                {showFilters ? 'Tutup Filter' : 'Filter Lanjutan'}
               </button>
-            )}
+              <button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-lg transition-all shadow-md"
+              >
+                Cari
+              </button>
+            </div>
 
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-full transition-all transform hover:scale-105 shadow-md"
-            >
-              Cari
-            </button>
+            {/* Area Filter Lanjutan */}
+            {showFilters && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100 animate-fade-in-down">
+                    
+                    {/* Filter Merk */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Merk</label>
+                        <input
+                            type="text"
+                            name="merk"
+                            placeholder="Contoh: Toyota"
+                            value={filters.merk}
+                            onChange={handleFilterChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                    </div>
+
+                    {/* Filter Tahun */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Tahun</label>
+                        <input
+                            type="number"
+                            name="tahun"
+                            placeholder="Contoh: 2022"
+                            value={filters.tahun}
+                            onChange={handleFilterChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                    </div>
+
+                    {/* Filter Lokasi */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Lokasi</label>
+                        <input
+                            type="text"
+                            name="lokasi"
+                            placeholder="Contoh: Jakarta"
+                            value={filters.lokasi}
+                            onChange={handleFilterChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                    </div>
+                </div>
+            )}
+            
+            {/* Indikator Reset */}
+            {(searchTerm || filters.merk || filters.tahun || filters.lokasi) && (
+                <div className="mt-4 text-center">
+                    <button type="button" onClick={handleReset} className="text-sm text-red-500 hover:text-red-700 font-medium hover:underline">
+                        Hapus Semua Filter
+                    </button>
+                </div>
+            )}
           </form>
         </div>
       </div>
@@ -132,10 +214,14 @@ export default function Home() {
         <div className="mt-4 md:mt-0">
           {isLoggedIn ? (
             <Link 
-              href="/dashboard" 
-              className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:bg-blue-50 px-5 py-2.5 rounded-lg transition"
+              href={dashboardLink} 
+              className={`inline-flex items-center gap-2 font-semibold px-5 py-2.5 rounded-lg transition ${
+                dashboardLink === '/admin' 
+                  ? 'text-red-600 hover:bg-red-50'
+                  : 'text-blue-600 hover:bg-blue-50'
+              }`}
             >
-              <span>Dashboard Saya</span>
+              <span>{dashboardLink === '/admin' ? 'Panel Admin' : 'Dashboard Saya'}</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -163,7 +249,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {mobils.map((mobil) => (
               <Link href={`/mobil/${mobil.id}`} key={mobil.id} className="group">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
+                {/* CONDITIONAL STYLE */}
+                <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col ${mobil.status !== 'tersedia' ? 'grayscale-[30%] opacity-90' : ''}`}>
                   
                   {/* Image Container */}
                   <div className="relative h-60 w-full bg-gray-100 overflow-hidden">
@@ -175,14 +262,29 @@ export default function Home() {
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full text-gray-300">
-                         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
                           <span className="text-sm font-medium">No Image</span>
                       </div>
                     )}
                     
-                    {/* Floating Badges */}
+                    {mobil.status === 'booked' && (
+                      <div className="absolute top-4 left-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-10 border border-yellow-200">
+                        ⏳ BOOKED
+                      </div>
+                    )}
+
+                    {mobil.status === 'terjual' && (
+                      <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-10 border border-red-700">
+                        ❌ TERJUAL
+                      </div>
+                    )}
+
+                    {mobil.status === 'tersedia' && (
+                       <div className="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-10">
+                         ✅ AVAILABLE
+                       </div>
+                    )}
+
+                    {/* Year Badge */}
                     <div className="absolute top-4 right-4 flex gap-2">
                        <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
                         {mobil.tahun}
@@ -199,25 +301,16 @@ export default function Home() {
                     </div>
                     
                     <p className="text-gray-500 text-sm mb-4 flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      {mobil.lokasi}
+                      📍 {mobil.lokasi}
                     </p>
 
                     <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
                       <div>
                         <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Harga Cash</p>
-                        <p className="text-lg font-extrabold text-gray-900">
+                        <p className={`text-lg font-extrabold ${mobil.status !== 'tersedia' ? 'text-gray-500 line-through decoration-red-500' : 'text-gray-900'}`}>
                           Rp {Number(mobil.harga_jual).toLocaleString('id-ID')}
                         </p>
                       </div>
-                      <span className="text-blue-600 bg-blue-50 p-2 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -226,18 +319,8 @@ export default function Home() {
 
             {mobils.length === 0 && (
               <div className="col-span-full text-center py-20">
-                <div className="bg-gray-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
                 <h3 className="text-lg font-bold text-gray-900">Tidak ada mobil ditemukan</h3>
-                <p className="text-gray-500 mb-6">Coba cari dengan kata kunci lain atau reset filter.</p>
-                {isSearching && (
-                  <button onClick={handleReset} className="text-blue-600 font-bold hover:underline">
-                    Reset Pencarian
-                  </button>
-                )}
+                <p className="text-gray-500 mb-6">Coba kurangi filter pencarian anda.</p>
               </div>
             )}
           </div>
