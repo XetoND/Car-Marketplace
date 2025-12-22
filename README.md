@@ -49,6 +49,7 @@ Sebelum memulai, pastikan sistem Anda memiliki:
     cp .env.example .env
     # Atur DB_DATABASE, DB_USERNAME, dll di file .env
     php artisan key:generate
+    php artisan storage:link
     php artisan migrate
     ```
 
