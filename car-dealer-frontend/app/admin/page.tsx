@@ -40,13 +40,11 @@ export default function AdminDashboard() {
 
     setUser(userData);
 
-    // 1. Fetch Transactions
     api.get('/admin/transaksi')
       .then((res) => setTransactions(res.data))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
 
-    // 2. Fetch Revenue
     fetchStats();
 
   }, [router]);
