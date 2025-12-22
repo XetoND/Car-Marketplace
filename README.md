@@ -39,7 +39,7 @@ Sebelum memulai, pastikan sistem Anda memiliki:
 
 1.  **Clone Repositori & Masuk ke Folder Backend**
     ```bash
-    git clone [https://github.com/username/car-marketplace.git](https://github.com/username/car-marketplace.git)
+    git clone https://github.com/XetoND/Car-Marketplace
     cd car-dealer-backend
     ```
 
